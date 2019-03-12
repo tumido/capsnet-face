@@ -1,15 +1,13 @@
 [[source]]
+name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-name = "pypi"
-
-[packages]
-tensorflow = "*"
-numpy = "*"
 
 [dev-packages]
 pylama = "*"
 pylama-pylint = "*"
+
+[packages]
 
 [requires]
 python_version = "3.6"
