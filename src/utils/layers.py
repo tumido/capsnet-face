@@ -65,7 +65,7 @@ class Capsule(layers.Layer):
             ]
         )
 
-        self.built = True
+        super().build(input_shape)
 
     def call(self, inputs):
         """Layer logic.
@@ -103,7 +103,7 @@ class Capsule(layers.Layer):
             # Treat first 2 dimensions of each tensor as batch dimensions and perform dot:
             # [input_capsule_count] x [input_capsule_count, capsule_dim]
             # Perform: squash
-            output = squash(k.batch_dot(c, inputs, [2, 2]))
+            outputs = squash(k.batch_dot(c, inputs, [2, 2]))
             # output.shape == [None, capsule_count, capsule_dim]
 
             # Update b only if not the last iteration
@@ -111,42 +111,52 @@ class Capsule(layers.Layer):
                 # Perform: output x input
                 # Treat first 2 dimensions as batch dimensions and dot the rest:
                 # [capsule_dim] x [input_capsule_count, capsule_dim]
-                b += k.batch_dot(output, inputs, [2, 3])
+                b += k.batch_dot(outputs, inputs, [2, 3])
                 # b.shape == [None, capsule_count, input_capsule_count]
 
         return outputs
 
 
-def PrimaryCapsule(inputs, capsule_dim, channels_count,
-                   kernel_size, strides, padding):
+def PrimaryCapsule(capsule_dim, channels_count,
+                   kernel_size, strides, padding, name=''):
     """Primary capsule layer.
 
     Args:
-        inputs: Input tensor of shape [None, width, height, channels]
         capsule_dim: Dimension of the output vector of each capsule
         channels_count: Types of capsules
         kernel_size: Param for Conv2D
         strides: Param for Conv2D
         padding: Param for Conv2D
     """
-    # Apply Conv2D for each channel
-    outputs = layers.Conv2D(
-        capsule_dim*channels_count,
-        kernel_size,
-        strides=strides,
-        padding=padding,
-        name='primary_capsule_conv2d'
-    )
+    def _layer(inputs):
+        """Primary capsule layer
 
-    # Concatenate all capsules
-    outputs = layers.Reshape(
-        [-1, capsule_dim],
-        name='primary_capsule_reshape'
-    )(outputs)
+        Args:
+            inputs: Input tensor
 
-    outputs = layers.Lambda(
-        squash,
-        name='primary_capsule_squash'
-    )(outputs)
+        Returns:
+            A tensor
+        """
 
-    return outputs
+        # Apply Conv2D for each channel
+        outputs = layers.Conv2D(
+            capsule_dim*channels_count,
+            kernel_size,
+            strides=strides,
+            padding=padding,
+            name=f'{name}_conv2d'
+        )(inputs)
+
+        # Concatenate all capsules
+        outputs = layers.Reshape(
+            [-1, capsule_dim],
+            name=f'{name}_reshape'
+        )(outputs)
+
+        outputs = layers.Lambda(
+            squash,
+            name=f'{name}_squash'
+        )(outputs)
+
+        return outputs
+    return _layer
