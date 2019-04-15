@@ -1,10 +1,18 @@
 import numpy as np
+from sklearn.datasets import fetch_lfw_people
 
-from utils.dataset import get_dataset
+from utils.dataset import preprocess_lfw_people
 from utils.network import CapsNet
 
 if __name__ == "__main__":
-    data = get_dataset()
+    people = fetch_lfw_people(
+        color=True,
+        min_faces_per_person=min_faces_per_person,
+        resize=1.,
+        # slice_=(slice(48, 202), slice(48, 202))
+    )
+
+    data = preprocess_lfw_people(people)
 
     (x_train, y_train), (x_test, y_test) = data
 
@@ -13,4 +21,5 @@ if __name__ == "__main__":
         len(np.unique(y_train, axis=0))
     )
 
+    capsnet.models['train'].summary()
     capsnet.train(data, batch_size=10)

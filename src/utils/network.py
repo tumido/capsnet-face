@@ -98,8 +98,8 @@ class CapsNet:
         )
 
 
-    def train(self, data, batch_size=100, epochs=50,
-              lr=0.001, lr_decay=0.4, decoder_loss_weight=.4,
+    def train(self, data, batch_size=10, epochs=50,
+              lr=.001, lr_decay=.9, decoder_loss_weight=.4,
               save_dir='model'):
         """Train the network.
 

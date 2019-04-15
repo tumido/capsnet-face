@@ -10,7 +10,7 @@ def margin_loss(true, predicted):
     Returns:
         Scalar loss
     """
-    loss = true * k.maximum(.0, .9 - predicted)
-    loss += .5 * (1 - true) * k.square(k.maximum(.0, predicted - .1))
+    loss = true * k.maximum(.0, .9 - predicted) + \
+        .5 * (1 - true) * k.square(k.maximum(.0, predicted - .1))
 
     return k.mean(k.sum(loss, 1))
