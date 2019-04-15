@@ -1,13 +1,12 @@
 import numpy as np
 from sklearn.datasets import fetch_lfw_people
 
-from utils.dataset import preprocess_lfw_people
-from utils.network import CapsNet
+from capsnet import preprocess_lfw_people, CapsNet
 
 if __name__ == "__main__":
     people = fetch_lfw_people(
         color=True,
-        min_faces_per_person=min_faces_per_person,
+        min_faces_per_person=25,
         resize=1.,
         # slice_=(slice(48, 202), slice(48, 202))
     )

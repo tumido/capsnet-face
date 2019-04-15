@@ -2,7 +2,7 @@ import numpy as np
 from keras import models, layers, callbacks, optimizers
 from .layers import Mask, PredictionCapsule, FeatureCapsule
 from .losses import margin_loss
-from .dataset import dataset_gen, get_dataset
+from .dataset import dataset_gen
 from .activations import length
 
 class CapsNet:
