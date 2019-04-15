@@ -17,3 +17,7 @@ def squash(input, axis=-1):
     s_norm = k.sum(k.square(input), axis, keepdims=True)
     scale = s_norm / (1 + s_norm) / k.sqrt(s_norm + k.epsilon())
     return scale * input
+
+
+def length(inputs):
+    return k.sqrt(k.sum(k.square(inputs), -1) + k.epsilon())

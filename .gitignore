@@ -103,5 +103,5 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# Data sets
-data_sets/*
+# Model logs
+src/model/

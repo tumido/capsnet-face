@@ -2,7 +2,8 @@ import numpy as np
 from keras import models, layers, callbacks, optimizers
 from .layers import Mask, PredictionCapsule, FeatureCapsule
 from .losses import margin_loss
-from .dataset import dataset_generator, get_dataset
+from .dataset import dataset_gen, get_dataset
+from .activations import length
 
 class CapsNet:
     """Capsule neural network for Face Recognition.
@@ -22,7 +23,7 @@ class CapsNet:
 
         """
         # Input layer
-        x = layers.Input(shape=input_shape)
+        x = layers.Input(name='input_image', shape=input_shape)
 
         # Encoder
         conv = layers.Conv2D(
@@ -48,8 +49,13 @@ class CapsNet:
             name='encoder_pred_caps'
         )(feature_caps)
 
+        output = layers.Lambda(
+            length,
+            name='capsnet'
+        )(prediction_caps)
+
         # Decoder
-        y = layers.Input(shape=(bins,))
+        y = layers.Input(name='input_label', shape=(bins,))
 
         decoder = models.Sequential(
             name='decoder',
@@ -76,25 +82,25 @@ class CapsNet:
             ]
         )
 
-        masked_train = Mask()([prediction_caps, y])
-        masked_inference = Mask()(prediction_caps)
+        masked_train = Mask(name='mask_with_labels')([prediction_caps, y])
+        masked_inference = Mask(name='mask')(prediction_caps)
 
         # Models
         self.models = dict(
             train=models.Model(
-                [x, y],
-                [prediction_caps, decoder(masked_train)]
+                inputs=[x, y],
+                outputs=[output, decoder(masked_train)]
             ),
             inference=models.Model(
-                x,
-                [feature_caps, prediction_caps, decoder(masked_inference)]
+                inputs=x,
+                outputs=[feature_caps, output, decoder(masked_inference)]
             )
         )
 
 
     def train(self, data, batch_size=100, epochs=50,
               lr=0.001, lr_decay=0.4, decoder_loss_weight=.4,
-              save_dir=None):
+              save_dir='model'):
         """Train the network.
 
         Args:
@@ -127,10 +133,11 @@ class CapsNet:
         )
 
         self.models['train'].fit_generator(
-            generator=dataset_generator(x_train, y_train),
-            steps_per_epoch=int(y_train.shape[0] / batch_size),
+            generator=dataset_gen(x_train, y_train, batch_size=batch_size),
+            steps_per_epoch=len(x_train) / batch_size,
             epochs=epochs,
-            validation_data=[x_test, y_test],
+            validation_data=[[x_test, y_test], [y_test, x_test]],
+            verbose=1,
             callbacks=cb
         )
 
