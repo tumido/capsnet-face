@@ -7,7 +7,7 @@ if __name__ == "__main__":
     people = fetch_lfw_people(
         color=True,
         min_faces_per_person=25,
-        resize=1.,
+        # resize=1.,
         # slice_=(slice(48, 202), slice(48, 202))
     )
 

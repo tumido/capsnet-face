@@ -8,8 +8,8 @@ def preprocess_lfw_people(people, ttt_ratio=.2):
         people.images,
         people.target,
         test_size=ttt_ratio,
-        stratify=people.target,
-        random_state=54
+        # stratify=people.target,
+        # random_state=54
     )
 
     n_classes = people.target_names.shape[0]

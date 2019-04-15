@@ -1,7 +1,7 @@
 """Layers used by CapsNet."""
 import tensorflow as tf
 import keras.backend as k
-from keras import layers
+from keras import layers, initializers
 
 from .activations import squash
 
@@ -18,6 +18,7 @@ class PredictionCapsule(layers.Layer):
 
         # ? Init to zeros?
         self.input_capsule_count = None
+        self.kernel_initializer = initializers.random_uniform(-1, 1)
         super(PredictionCapsule, self).__init__(**kwargs)
 
     def get_config(self):
@@ -59,7 +60,7 @@ class PredictionCapsule(layers.Layer):
                 self.capsule_dim, input_capsule_dim
             ],
             name='W',
-            initializer='glorot_uniform',
+            initializer=self.kernel_initializer,
             trainable=True
         )
 
