@@ -1,13 +1,13 @@
 """Layers used by CapsNet."""
 import tensorflow as tf
 import keras.backend as k
-from keras import layers, initializers
+from keras import layers
 
 from .activations import squash
 
 
-class Capsule(layers.Layer):
-    """Capsule layer."""
+class PredictionCapsule(layers.Layer):
+    """PredictionCapsule layer."""
 
     def __init__(self, capsule_count, capsule_dim, routing_iters=3, **kwargs):
         """Capsule layer."""
@@ -18,6 +18,7 @@ class Capsule(layers.Layer):
 
         # ? Init to zeros?
         self.input_capsule_count = None
+        super(PredictionCapsule, self).__init__(**kwargs)
 
     def get_config(self):
         """Return the config of the layer.
@@ -28,7 +29,7 @@ class Capsule(layers.Layer):
             capsule_count=self.capsule_count,
             capsule_dim=self.capsule_dim,
             routing_iters=self.routing_iters,
-            **super().get_config()
+            **super(PredictionCapsule, self).get_config()
         )
 
 
@@ -44,28 +45,25 @@ class Capsule(layers.Layer):
 
         Overrides <keras.layers.Layer.build>
         """
-        tf.assert_rank(
-            input_shape,
-            rank=3,
-            message=(
-                'The input Tensor shape must be '
-                '[None, input_capsule_count, input_capsule_dimension]'
-            )
+        assert len(input_shape) == 3, (
+            'The input Tensor shape must be '
+            '[None, input_capsule_count, input_capsule_dimension]'
         )
         self.input_capsule_count = input_shape[1]
         input_capsule_dim = input_shape[2]
 
         # Define transformation matrix
         self.W = self.add_weight(
-            name='W',
-            initializer=initializers.glorot_uniform,
             shape=[
                 self.capsule_count, self.input_capsule_count,
                 self.capsule_dim, input_capsule_dim
-            ]
+            ],
+            name='W',
+            initializer='glorot_uniform',
+            trainable=True
         )
 
-        super().build(input_shape)
+        super(PredictionCapsule, self).build(input_shape)
 
     def call(self, inputs):
         """Layer logic.
@@ -117,9 +115,9 @@ class Capsule(layers.Layer):
         return outputs
 
 
-def PrimaryCapsule(capsule_dim, channels_count,
+def FeatureCapsule(capsule_dim, channels_count,
                    kernel_size, strides, padding, name=''):
-    """Primary capsule layer.
+    """FeatureFace capsule layer.
 
     Args:
         capsule_dim: Dimension of the output vector of each capsule
@@ -160,3 +158,20 @@ def PrimaryCapsule(capsule_dim, channels_count,
 
         return outputs
     return _layer
+
+
+class Mask(layers.Layer):
+    def call(self, inputs, **kwargs):
+        if isinstance(inputs, list):
+            inputs, mask = inputs
+        else:
+            lengths = k.sqrt(k.sum(k.square(inputs), -1))
+            indices = k.argmax(lengths, 1)
+            num_classes = lengths.get_shape().as_list()[1]
+            mask = k.one_hot(indices, num_classes)
+        return k.batch_flatten(inputs * k.expand_dims(mask, -1))
+
+    def compute_output_shape(self, input_shape):
+        if isinstance(input_shape[0], tuple):
+            input_shape = input_shape[0]
+        return (None, input_shape[1] * input_shape[2])

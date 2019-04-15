@@ -15,5 +15,5 @@ def squash(input, axis=-1):
         A tensor of the same shape as input.
     """
     s_norm = k.sum(k.square(input), axis, keepdims=True)
-    scale = s_norm / (1 + s_norm) / k.sqrt(s_norm, k.epsilon())
+    scale = s_norm / (1 + s_norm) / k.sqrt(s_norm + k.epsilon())
     return scale * input

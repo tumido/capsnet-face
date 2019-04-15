@@ -1,7 +1,8 @@
 import numpy as np
 from keras import models, layers, callbacks, optimizers
-import layers as custom_layers
-from losses import margin_loss
+from .layers import Mask, PredictionCapsule, FeatureCapsule
+from .losses import margin_loss
+from .dataset import dataset_generator, get_dataset
 
 class CapsNet:
     """Capsule neural network for Face Recognition.
@@ -12,47 +13,43 @@ class CapsNet:
     and weights in capsules.
     """
 
-    def __init__(self, input_shape, markers_count):
+    def __init__(self, input_shape, bins):
         """CapsNet instance constructor.
 
         Args:
             input_shape: Input data shape - [width, height, channels]
-            markers_count: Number of recognised features
+            bins: Number of predicted faces
 
         """
         # Input layer
-        encoder_input = layers.Input(shape=input_shape)
+        x = layers.Input(shape=input_shape)
+
         # Encoder
-        encoder = models.Sequential(
-            name='encoder',
-            layers=[
-                layers.Conv2D(
-                    filters=256,
-                    kernel_size=9,
-                    strides=1,
-                    padding='valid',
-                    activation='relu',
-                    name='encoder_conv'
-                ),
-                custom_layers.PrimaryCapsule(
-                    capsule_dim=8,
-                    channels_count=32,
-                    kernel_size=9,
-                    strides=2,
-                    padding='valid',
-                    name='encoder_primary_caps'
-                ),
-                custom_layers.Capsule(
-                    capsule_count=markers_count,
-                    capsule_dim=16,
-                    routing_iters=3,
-                    name='encoder_features_caps'
-                )
-            ]
-        )
+        conv = layers.Conv2D(
+            filters=256,
+            kernel_size=9,
+            strides=1,
+            padding='valid',
+            activation='relu',
+            name='encoder_conv'
+        )(x)
+        feature_caps = FeatureCapsule(
+            capsule_dim=8,
+            channels_count=32,
+            kernel_size=9,
+            strides=2,
+            padding='valid',
+            name='encoder_feature_caps'
+        )(conv)
+        prediction_caps = PredictionCapsule(
+            capsule_count=bins,
+            capsule_dim=16,
+            routing_iters=3,
+            name='encoder_pred_caps'
+        )(feature_caps)
 
         # Decoder
-        decoder_input = layers.Input(shape=markers_count)(encoder)
+        y = layers.Input(shape=(bins,))
 
         decoder = models.Sequential(
             name='decoder',
@@ -60,7 +57,7 @@ class CapsNet:
                 layers.Dense(
                     units=512,
                     activation='relu',
-                    input_dim=16*markers_count,
+                    input_dim=16*bins,
                     name='decoder_dense_1'
                 ),layers.Dense(
                     units=1024,
@@ -79,18 +76,18 @@ class CapsNet:
             ]
         )
 
-        decoder_train_output = decoder()
-        decoder_inference_output = decoder()
+        masked_train = Mask()([prediction_caps, y])
+        masked_inference = Mask()(prediction_caps)
 
         # Models
         self.models = dict(
             train=models.Model(
-                [encoder_input, decoder_input],
-                [encoder(encoder_input), decoder_train_output()]
+                [x, y],
+                [prediction_caps, decoder(masked_train)]
             ),
             inference=models.Model(
-                [encoder_input],
-                [encoder(encoder_input), decoder_inference_output()]
+                x,
+                [feature_caps, prediction_caps, decoder(masked_inference)]
             )
         )
 
@@ -124,16 +121,16 @@ class CapsNet:
 
         self.models['train'].compile(
             optimizer=optimizers.Adam(lr=lr),
-            loss=[loss, 'mse'],
+            loss=[margin_loss, 'mse'],
             loss_weights=[1., decoder_loss_weight],
             metrics={'capsnet': 'accuracy'}
         )
 
         self.models['train'].fit_generator(
-            generator=None,
+            generator=dataset_generator(x_train, y_train),
             steps_per_epoch=int(y_train.shape[0] / batch_size),
             epochs=epochs,
-            validation_data=[[x_test, y_test], [y_test, x_test]],
+            validation_data=[x_test, y_test],
             callbacks=cb
         )
 
