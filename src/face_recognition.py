@@ -1,4 +1,3 @@
-import tensorflow as tf
 import numpy as np
 
 from utils.dataset import get_dataset
@@ -14,6 +13,4 @@ if __name__ == "__main__":
         len(np.unique(y_train, axis=0))
     )
 
-    capsnet.models['train'].summary()
-    capsnet.models['inference'].summary()
-    capsnet.train(data)
+    capsnet.train(data, batch_size=10)

@@ -8,8 +8,8 @@ def get_dataset(min_faces_per_person=25, ttt_ratio=.2):
     people = fetch_lfw_people(
         color=True,
         min_faces_per_person=min_faces_per_person,
-        resize=1.0,
-        slice_=(slice(48, 202), slice(48, 202))
+        # resize=1.0,
+        # slice_=(slice(48, 202), slice(48, 202))
     )
 
     x_train, x_test, y_train, y_test = train_test_split(
@@ -27,12 +27,12 @@ def get_dataset(min_faces_per_person=25, ttt_ratio=.2):
 
 def dataset_gen(x, y, batch_size=32):
     datagen = ImageDataGenerator(
-        featurewise_center=True,
-        featurewise_std_normalization=True,
-        rotation_range=20,
-        width_shift_range=0.2,
-        height_shift_range=0.2,
-        horizontal_flip=True
+        # featurewise_center=True,
+        # featurewise_std_normalization=True,
+        # rotation_range=20,
+        # width_shift_range=0.2,
+        # height_shift_range=0.2,
+        # horizontal_flip=True
     )
 
     generator = datagen.flow(x, y, batch_size=batch_size)
