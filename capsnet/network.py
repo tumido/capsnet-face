@@ -1,5 +1,8 @@
+import os
+
 import numpy as np
 from keras import models, layers, callbacks, optimizers
+
 from .layers import Mask, PredictionCapsule, FeatureCapsule
 from .losses import margin_loss
 from .dataset import dataset_gen
@@ -98,7 +101,7 @@ class CapsNet:
         )
 
 
-    def train(self, data, batch_size=10, epochs=50,
+    def train(self, data, batch_size=10, epochs=100,
               lr=.001, lr_decay=.9, decoder_loss_weight=.4,
               save_dir='model'):
         """Train the network.
@@ -111,6 +114,10 @@ class CapsNet:
 
         """
         (x_train, y_train), (x_test, y_test) = data
+
+        # Ensure model directory
+        if not os.path.isdir(save_dir):
+            os.mkdir(save_dir)
 
         # Callback
         cb = [
@@ -132,7 +139,7 @@ class CapsNet:
             metrics={'capsnet': 'accuracy'}
         )
 
-        self.models['train'].fit_generator(
+        hist = self.models['train'].fit_generator(
             generator=dataset_gen(x_train, y_train, batch_size=batch_size),
             steps_per_epoch=len(x_train) / batch_size,
             epochs=epochs,
@@ -142,6 +149,8 @@ class CapsNet:
         )
 
         self.models['train'].save_weights(f'{save_dir}/model.h5')
+
+        return hist
 
     def inference(self, data):
         pass

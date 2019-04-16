@@ -9,7 +9,9 @@ from .activations import squash
 class PredictionCapsule(layers.Layer):
     """PredictionCapsule layer."""
 
-    def __init__(self, capsule_count, capsule_dim, routing_iters=3, **kwargs):
+    def __init__(self, capsule_count, capsule_dim, routing_iters=3,
+                 kernel_initializer=initializers.random_uniform(-1, 1),
+                 **kwargs):
         """Capsule layer."""
         super().__init__(**kwargs)
         self.capsule_count = capsule_count

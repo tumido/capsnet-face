@@ -1,6 +1,7 @@
 """Activation functions used by CapsNet."""
 
 import keras.backend as k
+import tensorflow as tf
 
 
 def squash(input, axis=-1):
