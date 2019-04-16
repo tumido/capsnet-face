@@ -4,20 +4,20 @@ import keras.backend as k
 import tensorflow as tf
 
 
-def squash(input, axis=-1):
+def squash(inputs, axis=-1):
     """Non-linear activation used in Capsules.
 
     Args:
-        input: Input tensor.
+        inputs: Input tensor.
         axis:  The dimension squash would be performed on. The default is -1
             which indicates the last dimension.
 
     Returns:
         A tensor of the same shape as input.
     """
-    s_norm = k.sum(k.square(input), axis, keepdims=True)
+    s_norm = k.sum(k.square(inputs), axis, keepdims=True)
     scale = s_norm / (1 + s_norm) / k.sqrt(s_norm + k.epsilon())
-    return scale * input
+    return scale * inputs
 
 
 def length(inputs):
@@ -32,8 +32,8 @@ def length(inputs):
     Returns:
         A tensor of shape (None, num_capsules)
     """
-
     return k.sqrt(k.sum(k.square(inputs), -1) + k.epsilon())
+
 
 def resize(inputs, target_shape):
     """Resize image.
@@ -48,5 +48,4 @@ def resize(inputs, target_shape):
     Returns:
         A tensor of shape (None, HEIGHT, WIDTH)
     """
-
     return tf.image.resize_nearest_neighbor(inputs, target_shape)

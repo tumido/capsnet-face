@@ -32,7 +32,7 @@ def preprocess_lfw_people(people, ttt_ratio=.2):
         """
 
         image = Image.fromarray(image.astype('uint8'), 'RGB')
-        image = image.resize((32,32), Image.ANTIALIAS)
+        image = image.resize((32, 32), Image.ANTIALIAS)
         return np.array(image)
 
     x = np.array([downsample(i) for i in x]) / 255
@@ -79,4 +79,3 @@ def dataset_gen(x, y, batch_size):
     while 1:
         x_batch, y_batch = generator.next()
         yield ([x_batch, y_batch], [y_batch, x_batch])
-

@@ -1,12 +1,12 @@
 import os
 
-import numpy as np
 from keras import models, layers, callbacks, optimizers
 
 from .layers import Mask, PredictionCapsule, FeatureCapsule
 from .losses import margin_loss
 from .dataset import dataset_gen
 from .activations import length, resize
+
 
 class CapsNet:
     """Capsule neural network for Face Recognition.
@@ -71,7 +71,7 @@ class CapsNet:
         )
         decoder.add(
             layers.Reshape(
-                target_shape=(5,5, 16),
+                target_shape=(5, 5, 16),
                 name='decoder_reshape_1'
             )
         )
@@ -148,7 +148,7 @@ class CapsNet:
             )
         )
 
-
+    #pylint: disable-msg=too-many-arguments
     def train(self, data, batch_size=10, epochs=100,
               lr=.0001, lr_decay=.9, decoder_loss_weight=.0005,
               save_dir='model'):

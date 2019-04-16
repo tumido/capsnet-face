@@ -17,10 +17,12 @@ class PredictionCapsule(layers.Layer):
         self.capsule_count = capsule_count
         self.capsule_dim = capsule_dim
         self.routing_iters = routing_iters
+        self.kernel_initializer = kernel_initializer
 
-        # ? Init to zeros?
+        # Define feature variables
         self.input_capsule_count = None
-        self.kernel_initializer = initializers.random_uniform(-1, 1)
+        self.W = None
+
         super(PredictionCapsule, self).__init__(**kwargs)
 
     def get_config(self):
@@ -68,7 +70,7 @@ class PredictionCapsule(layers.Layer):
 
         super(PredictionCapsule, self).build(input_shape)
 
-    def call(self, inputs):
+    def call(self, inputs, **kwargs):
         """Layer logic.
 
         Overrides <keras.layers.Layers.call>
@@ -118,7 +120,7 @@ class PredictionCapsule(layers.Layer):
         return outputs
 
 
-def FeatureCapsule(capsule_dim, channels_count,
+def FeatureCapsule(capsule_dim, channels_count,  # noqa
                    kernel_size, strides, padding, name=''):
     """FeatureFace capsule layer.
 

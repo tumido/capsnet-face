@@ -3,7 +3,11 @@ from sklearn.datasets import fetch_lfw_people
 
 from capsnet import preprocess_lfw_people, CapsNet
 
-if __name__ == "__main__":
+def main():
+    """CapsNet run as module.
+
+    Run full cycle when CapsNet is run as a module.
+    """
     people = fetch_lfw_people(
         color=True,
         min_faces_per_person=25,
@@ -13,7 +17,7 @@ if __name__ == "__main__":
 
     data = preprocess_lfw_people(people)
 
-    (x_train, y_train), (x_test, y_test) = data
+    (x_train, y_train), (x_test, y_test) = data  # noqa
 
     capsnet = CapsNet(
         x_train.shape[1:],
@@ -22,3 +26,6 @@ if __name__ == "__main__":
 
     capsnet.models['train'].summary()
     capsnet.train(data, batch_size=10)
+
+if __name__ == "__main__":
+    main()
