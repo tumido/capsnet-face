@@ -1,6 +1,6 @@
 import os
 
-from keras import models, layers, callbacks, optimizers
+from keras import models, layers, callbacks as cbs, optimizers
 
 from .layers import Mask, PredictionCapsule, FeatureCapsule
 from .losses import margin_loss
@@ -151,7 +151,7 @@ class CapsNet:
     #pylint: disable-msg=too-many-arguments
     def train(self, data, batch_size=10, epochs=100,
               lr=.0001, lr_decay=.9, decoder_loss_weight=.0005,
-              save_dir='model'):
+              save_dir='model', callbacks=[]):
         """Train the network.
 
         Args:
@@ -169,15 +169,16 @@ class CapsNet:
 
         # Callback
         cb = [
-            callbacks.CSVLogger(f'{save_dir}/log.csv'),
-            callbacks.LearningRateScheduler(lambda e: lr * (lr_decay ** e)),
-            callbacks.ModelCheckpoint(
+            cbs.CSVLogger(f'{save_dir}/log.csv'),
+            cbs.LearningRateScheduler(lambda e: lr * (lr_decay ** e)),
+            cbs.ModelCheckpoint(
                 f'{save_dir}/weights.{{epoch:02d}}.h5', 'val_capsnet_acc',
                 save_best_only=True, save_weights_only=True, verbose=1
             ),
-            callbacks.TensorBoard(
+            cbs.TensorBoard(
                 f'{save_dir}/tensorboard_logs', batch_size=batch_size
             ),
+            *callbacks
         ]
 
         self.models['train'].compile(
