@@ -21,4 +21,32 @@ def squash(input, axis=-1):
 
 
 def length(inputs):
+    """Compute length from a tensor.
+
+    Used as layer.Lambda function to provide auxilary output of CapsNet.
+    Instead of a Capsule its length is used.
+
+    Args:
+        inputs: Input tensor
+
+    Returns:
+        A tensor of shape (None, num_capsules)
+    """
+
     return k.sqrt(k.sum(k.square(inputs), -1) + k.epsilon())
+
+def resize(inputs, target_shape):
+    """Resize image.
+
+    Used as layers.Lambda function to reshape a tensor image to enhance
+    dimensions.
+
+    Args:
+        inputs: Input tensor
+        target_shape: Desired shape (HEIGHT, WIDTH)
+
+    Returns:
+        A tensor of shape (None, HEIGHT, WIDTH)
+    """
+
+    return tf.image.resize_nearest_neighbor(inputs, target_shape)

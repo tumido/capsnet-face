@@ -6,7 +6,7 @@ from keras import models, layers, callbacks, optimizers
 from .layers import Mask, PredictionCapsule, FeatureCapsule
 from .losses import margin_loss
 from .dataset import dataset_gen
-from .activations import length
+from .activations import length, resize
 
 class CapsNet:
     """Capsule neural network for Face Recognition.
@@ -35,7 +35,7 @@ class CapsNet:
             strides=1,
             padding='valid',
             activation='relu',
-            name='encoder_conv'
+            name='encoder_conv2d'
         )(x)
         feature_caps = FeatureCapsule(
             capsule_dim=8,
@@ -60,29 +60,77 @@ class CapsNet:
         # Decoder
         y = layers.Input(name='input_label', shape=(bins,))
 
-        decoder = models.Sequential(
-            name='decoder',
-            layers=[
-                layers.Dense(
-                    units=512,
-                    activation='relu',
-                    input_dim=16*bins,
-                    name='decoder_dense_1'
-                ),layers.Dense(
-                    units=1024,
-                    activation='relu',
-                    name='decoder_dense_2'
-                ),
-                layers.Dense(
-                    units=np.prod(input_shape),
-                    activation='sigmoid',
-                    name='decoder_dense_3'
-                ),
-                layers.Reshape(
-                    target_shape=input_shape,
-                    name='decoder_reshape'
+        decoder = models.Sequential(name='decoder')
+        decoder.add(
+            layers.Dense(
+                units=400,
+                activation='relu',
+                input_dim=16*bins,
+                name='decoder_dense'
+            )
+        )
+        decoder.add(
+            layers.Reshape(
+                target_shape=(5,5, 16),
+                name='decoder_reshape_1'
+            )
+        )
+        decoder.add(
+            layers.Lambda(
+                resize,
+                arguments=dict(
+                    target_shape=(8, 8)
                 )
-            ]
+            )
+        )
+        decoder.add(
+            layers.Conv2D(
+                4,
+                9,
+                activation='relu',
+                padding='same',
+                name='decoder_conv2d_1'
+            )
+        )
+        decoder.add(
+            layers.Lambda(
+                resize,
+                arguments=dict(
+                    target_shape=(16, 16)
+                )
+            )
+        )
+        decoder.add(
+            layers.Conv2D(
+                16,
+                9,
+                activation='relu',
+                padding='same',
+                name='decoder_conv2d_2'
+            )
+        )
+        decoder.add(
+            layers.Lambda(
+                resize,
+                arguments=dict(
+                    target_shape=(32, 32)
+                )
+            )
+        )
+        decoder.add(
+            layers.Conv2D(
+                3,
+                9,
+                activation=None,
+                padding='same',
+                name='decoder_conv2d_3'
+            )
+        )
+        decoder.add(
+            layers.Reshape(
+                target_shape=input_shape,
+                name='decoder_reshape_2'
+            )
         )
 
         masked_train = Mask(name='mask_with_labels')([prediction_caps, y])
@@ -102,7 +150,7 @@ class CapsNet:
 
 
     def train(self, data, batch_size=10, epochs=100,
-              lr=.001, lr_decay=.9, decoder_loss_weight=.4,
+              lr=.0001, lr_decay=.9, decoder_loss_weight=.0005,
               save_dir='model'):
         """Train the network.
 
