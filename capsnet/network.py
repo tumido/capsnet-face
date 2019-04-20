@@ -40,7 +40,7 @@ class CapsNet:
         feature_caps = FeatureCapsule(
             capsule_dim=8,
             channels_count=32,
-            kernel_size=9,
+            kernel_size=6,
             strides=2,
             padding='valid',
             name='encoder_feature_caps'
@@ -102,7 +102,7 @@ class CapsNet:
         )
         decoder.add(
             layers.Conv2D(
-                16,
+                8,
                 9,
                 activation='relu',
                 padding='same',
@@ -119,7 +119,7 @@ class CapsNet:
         )
         decoder.add(
             layers.Conv2D(
-                3,
+                16,
                 9,
                 activation=None,
                 padding='same',
@@ -127,10 +127,16 @@ class CapsNet:
             )
         )
         decoder.add(
-            layers.Reshape(
-                target_shape=input_shape,
-                name='decoder_reshape_2'
+            layers.Conv2D(
+                3,
+                9,
+                activation=None,
+                padding='same',
+                name='decoder_conv2d_4'
             )
+        )
+        decoder.add(
+            layers.Activation('relu', name='decoder_activation')
         )
 
         masked_train = Mask(name='mask_with_labels')([prediction_caps, y])
