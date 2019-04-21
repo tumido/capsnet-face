@@ -1,6 +1,6 @@
 import os
 
-from keras import models, layers, callbacks as cbs, optimizers
+from keras import models, layers, callbacks as cbs, optimizers, initializers
 
 from .layers import Mask, PredictionCapsule, FeatureCapsule
 from .losses import margin_loss
@@ -17,7 +17,8 @@ class CapsNet:
     and weights in capsules.
     """
 
-    def __init__(self, input_shape, bins):
+    def __init__(self, input_shape, bins, routing_iters=3,
+                 kernel_initializer=initializers.random_uniform(-1, 1)):
         """CapsNet instance constructor.
 
         Args:
@@ -48,7 +49,8 @@ class CapsNet:
         prediction_caps = PredictionCapsule(
             capsule_count=bins,
             capsule_dim=16,
-            routing_iters=3,
+            routing_iters=routing_iters,
+            kernel_initializer=kernel_initializer,
             name='encoder_pred_caps'
         )(feature_caps)
 

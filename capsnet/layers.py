@@ -9,15 +9,17 @@ from .activations import squash
 class PredictionCapsule(layers.Layer):
     """PredictionCapsule layer."""
 
-    def __init__(self, capsule_count, capsule_dim, routing_iters=3,
-                 kernel_initializer=initializers.random_uniform(-1, 1),
-                 **kwargs):
+    def __init__(self, capsule_count, capsule_dim,
+                 kernel_initializer, routing_iters=3, **kwargs):
         """Capsule layer."""
         super().__init__(**kwargs)
         self.capsule_count = capsule_count
         self.capsule_dim = capsule_dim
         self.routing_iters = routing_iters
+
         self.kernel_initializer = kernel_initializer
+        if isinstance(kernel_initializer, str):
+            self.kernel_initializer = initializers.get(kernel_initializer)
 
         # Define feature variables
         self.input_capsule_count = None
@@ -67,6 +69,8 @@ class PredictionCapsule(layers.Layer):
             initializer=self.kernel_initializer,
             trainable=True
         )
+        with tf.name_scope(self.name):
+            tf.summary.histogram('W', self.W)
 
         super(PredictionCapsule, self).build(input_shape)
 
@@ -100,22 +104,23 @@ class PredictionCapsule(layers.Layer):
         # b.shape == [None, capsule_count, input_capsule_count]
 
         for i in range(self.routing_iters):
-            c = tf.keras.activations.softmax(b, axis=1)
-            # c.shape == [batch_size, capsule_count, input_capsule_count]
-            # Perform: c x input
-            # Treat first 2 dimensions of each tensor as batch dimensions and perform dot:
-            # [input_capsule_count] x [input_capsule_count, capsule_dim]
-            # Perform: squash
-            outputs = squash(k.batch_dot(c, inputs, [2, 2]))
-            # output.shape == [None, capsule_count, capsule_dim]
+            with tf.variable_scope(f'routing_{i}'):
+                c = tf.keras.activations.softmax(b, axis=1)
+                # c.shape == [batch_size, capsule_count, input_capsule_count]
+                # Perform: c x input
+                # Treat first 2 dimensions of each tensor as batch dimensions and perform dot:
+                # [input_capsule_count] x [input_capsule_count, capsule_dim]
+                # Perform: squash
+                outputs = squash(k.batch_dot(c, inputs, [2, 2]))
+                # output.shape == [None, capsule_count, capsule_dim]
 
-            # Update b only if not the last iteration
-            if i == self.routing_iters-1:
-                # Perform: output x input
-                # Treat first 2 dimensions as batch dimensions and dot the rest:
-                # [capsule_dim] x [input_capsule_count, capsule_dim]
-                b += k.batch_dot(outputs, inputs, [2, 3])
-                # b.shape == [None, capsule_count, input_capsule_count]
+                # Update b only if not the last iteration
+                if i == self.routing_iters-1:
+                    # Perform: output x input
+                    # Treat first 2 dimensions as batch dimensions and dot the rest:
+                    # [capsule_dim] x [input_capsule_count, capsule_dim]
+                    b += k.batch_dot(outputs, inputs, [2, 3])
+                    # b.shape == [None, capsule_count, input_capsule_count]
 
         return outputs
 
