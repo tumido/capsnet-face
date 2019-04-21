@@ -18,7 +18,7 @@ class CapsNet:
     """
 
     def __init__(self, input_shape, bins, routing_iters=3,
-                 kernel_initializer=initializers.random_uniform(-1, 1)):
+                 kernel_initializer='random_uniform'):
         """CapsNet instance constructor.
 
         Args:
@@ -38,14 +38,15 @@ class CapsNet:
             activation='relu',
             name='encoder_conv2d'
         )(x)
+        dropout = layers.Dropout(.7, name='encoder_dropout')(conv)
         feature_caps = FeatureCapsule(
             capsule_dim=8,
             channels_count=32,
-            kernel_size=6,
+            kernel_size=9,
             strides=2,
             padding='valid',
             name='encoder_feature_caps'
-        )(conv)
+        )(dropout)
         prediction_caps = PredictionCapsule(
             capsule_count=bins,
             capsule_dim=16,
@@ -184,7 +185,9 @@ class CapsNet:
                 save_best_only=True, save_weights_only=True, verbose=1
             ),
             cbs.TensorBoard(
-                f'{save_dir}/tensorboard_logs', batch_size=batch_size
+                f'{save_dir}/tensorboard_logs', batch_size=batch_size,
+                histogram_freq=1, write_graph=True, write_grads=True,
+                write_images=True
             ),
             *callbacks
         ]
