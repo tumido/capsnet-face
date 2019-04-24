@@ -17,7 +17,7 @@ class CapsNet:
     and weights in capsules.
     """
 
-    def __init__(self, input_shape, bins, routing_iters=3,
+    def __init__(self, input_shape, bins, routing_iters=2,
                  kernel_initializer='random_uniform'):
         """CapsNet instance constructor.
 
@@ -40,16 +40,16 @@ class CapsNet:
         )(x)
         dropout = layers.Dropout(.7, name='encoder_dropout')(conv)
         feature_caps = FeatureCapsule(
-            capsule_dim=8,
-            channels_count=32,
-            kernel_size=9,
+            capsule_dim=16,
+            channels_count=16,
+            kernel_size=5,
             strides=2,
             padding='valid',
             name='encoder_feature_caps'
         )(dropout)
         prediction_caps = PredictionCapsule(
             capsule_count=bins,
-            capsule_dim=16,
+            capsule_dim=32,
             routing_iters=routing_iters,
             kernel_initializer=kernel_initializer,
             name='encoder_pred_caps'
@@ -68,7 +68,7 @@ class CapsNet:
             layers.Dense(
                 units=400,
                 activation='relu',
-                input_dim=16*bins,
+                input_dim=32*bins,
                 name='decoder_dense'
             )
         )

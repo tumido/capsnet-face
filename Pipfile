@@ -8,6 +8,8 @@ pylama = "*"
 pylama-pylint = "*"
 pytest = "*"
 ipython = "*"
+pydot = "*"
+graphviz = "*"
 
 [packages]
 scikit-learn = "==0.20.3"

@@ -1,6 +1,7 @@
 """Layers used by CapsNet."""
 import tensorflow as tf
 import keras.backend as k
+import numpy as np
 from keras import layers, initializers
 
 from .activations import squash
