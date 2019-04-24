@@ -142,18 +142,17 @@ class CapsNet:
             layers.Activation('relu', name='decoder_activation')
         )
 
-        masked_train = Mask(name='mask_with_labels')([prediction_caps, y])
-        masked_inference = Mask(name='mask')(prediction_caps)
+        masked = Mask(name='mask')([prediction_caps, y])
 
         # Models
         self.models = dict(
             train=models.Model(
                 inputs=[x, y],
-                outputs=[output, decoder(masked_train)]
+                outputs=[output, decoder(masked)]
             ),
             inference=models.Model(
                 inputs=x,
-                outputs=[feature_caps, output, decoder(masked_inference)]
+                outputs=[feature_caps, prediction_caps]
             )
         )
 

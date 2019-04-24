@@ -29,7 +29,7 @@ def main():
 
     # Start TensorBoard
     tb = callbacks.TensorBoard(
-        'model/tensorboard_logs', batch_size=batch_size,
+        'model/tensorboard_logs', batch_size=10,
         histogram_freq=1, write_graph=True, write_grads=True,
         write_images=True
     ),

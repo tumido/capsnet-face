@@ -33,7 +33,7 @@ def length(inputs):
     Returns:
         A tensor of shape (None, num_capsules)
     """
-    return k.sqrt(k.sum(k.square(inputs), -1) + k.epsilon())
+    return k.sqrt(k.sum(k.square(inputs), axis=2))
 
 
 def resize(inputs, target_shape):

@@ -173,16 +173,10 @@ def FeatureCapsule(capsule_dim, channels_count,  # noqa
 
 class Mask(layers.Layer):
     def call(self, inputs, **kwargs):
-        if isinstance(inputs, list):
-            inputs, mask = inputs
-        else:
-            lengths = k.sqrt(k.sum(k.square(inputs), -1))
-            indices = k.argmax(lengths, 1)
-            num_classes = lengths.get_shape().as_list()[1]
-            mask = k.one_hot(indices, num_classes)
-        return k.batch_flatten(inputs * k.expand_dims(mask, -1))
+        capsule_output, labels = inputs
+
+        mask = k.batch_flatten(capsule_output * k.expand_dims(labels, -1))
+        return mask
 
     def compute_output_shape(self, input_shape):
-        if isinstance(input_shape[0], tuple):
-            input_shape = input_shape[0]
-        return (None, input_shape[1] * input_shape[2])
+        return (None, input_shape[0][1] * input_shape[0][2])
