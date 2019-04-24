@@ -160,7 +160,7 @@ class CapsNet:
     #pylint: disable-msg=too-many-arguments
     def train(self, data, batch_size=10, epochs=100,
               lr=.0001, lr_decay=.9, decoder_loss_weight=.0005,
-              save_dir='model', callbacks=[]):
+              save_dir='model', extra_callbacks=[]):
         """Train the network.
 
         Args:
@@ -184,12 +184,7 @@ class CapsNet:
                 f'{save_dir}/weights.{{epoch:02d}}.h5', 'val_capsnet_acc',
                 save_best_only=True, save_weights_only=True, verbose=1
             ),
-            cbs.TensorBoard(
-                f'{save_dir}/tensorboard_logs', batch_size=batch_size,
-                histogram_freq=1, write_graph=True, write_grads=True,
-                write_images=True
-            ),
-            *callbacks
+            *extra_callbacks
         ]
 
         self.models['train'].compile(

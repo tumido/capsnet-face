@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.datasets import fetch_lfw_people
+from keras import callbacks
 
 from capsnet import preprocess_lfw_people, CapsNet
 
@@ -25,7 +26,14 @@ def main():
     )
 
     capsnet.models['train'].summary()
-    capsnet.train(data, batch_size=10)
+
+    # Start TensorBoard
+    tb = callbacks.TensorBoard(
+        'model/tensorboard_logs', batch_size=batch_size,
+        histogram_freq=1, write_graph=True, write_grads=True,
+        write_images=True
+    ),
+    capsnet.train(data, batch_size=10, extra_callbacks=[tb])
 
 if __name__ == "__main__":
     main()
