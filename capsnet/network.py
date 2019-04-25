@@ -17,8 +17,10 @@ class CapsNet:
     and weights in capsules.
     """
 
-    def __init__(self, input_shape, bins, routing_iters=3,
-                 kernel_initializer='random_uniform'):
+    def __init__(
+        self, input_shape, bins, routing_iters=3,
+        kernel_initializer=initializers.random_normal(stddev=0.01, seed=0)
+    ):
         """CapsNet instance constructor.
 
         Args:
