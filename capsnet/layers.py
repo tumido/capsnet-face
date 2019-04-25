@@ -94,7 +94,8 @@ class PredictionCapsule(layers.Layer):
         # Perform: inputs x W by scanning on input[0]
         # Treat first 2 dimensions as batch dimensions
         # [input_capsule_dim] x [capsule_dim, input_capsule_dim]
-        u = k.map_fn(lambda x: k.batch_dot(x, self.W, [2, 3]), inputs)
+        # u = k.map_fn(lambda x: k.batch_dot(x, self.W, [2, 3]), inputs)
+        u = tf.einsum('iabc,abdc->iabd', inputs, self.W)
         # u.shape == [None, capsule_count, input_capsule_count, capsule_dim]
 
         # Routing
