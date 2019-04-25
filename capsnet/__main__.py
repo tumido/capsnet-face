@@ -25,15 +25,15 @@ def main():
         len(np.unique(y_train, axis=0))
     )
 
-    capsnet.models['train'].summary()
+    capsnet.summary()
 
     # Start TensorBoard
-    tb = callbacks.TensorBoard(
+    tensorboard = callbacks.TensorBoard(
         'model/tensorboard_logs', batch_size=10,
         histogram_freq=1, write_graph=True, write_grads=True,
         write_images=True
     )
-    capsnet.train(data, batch_size=10, extra_callbacks=[tb])
+    capsnet.train(data, batch_size=10, extra_callbacks=[tensorboard])
 
 if __name__ == "__main__":
     main()

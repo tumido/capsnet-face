@@ -1,6 +1,7 @@
 import os
 
 from keras import models, layers, callbacks as cbs, optimizers, initializers
+import numpy as np
 
 from .layers import Mask, PredictionCapsule, FeatureCapsule
 from .losses import margin_loss
@@ -18,8 +19,8 @@ class CapsNet:
     """
 
     def __init__(
-        self, input_shape, bins, routing_iters=3,
-        kernel_initializer=initializers.random_normal(stddev=0.01, seed=0)
+            self, input_shape, bins, routing_iters=3,
+            kernel_initializer=initializers.random_normal(stddev=0.01, seed=0)
     ):
         """CapsNet instance constructor.
 
@@ -150,21 +151,21 @@ class CapsNet:
         masked = Mask(name='mask')([prediction_caps, y])
 
         # Models
-        self.models = dict(
+        self._models = dict(
             train=models.Model(
                 inputs=[x, y],
                 outputs=[output, decoder(masked)]
             ),
-            inference=models.Model(
+            test=models.Model(
                 inputs=x,
-                outputs=[feature_caps, prediction_caps]
+                outputs=[output, feature_caps]
             )
         )
 
     #pylint: disable-msg=too-many-arguments
     def train(self, data, batch_size=10, epochs=100,
               lr=.0001, lr_decay=.9, decoder_loss_weight=.0005,
-              save_dir='model', extra_callbacks=[]):
+              save_dir='model', extra_callbacks=None):
         """Train the network.
 
         Args:
@@ -175,12 +176,14 @@ class CapsNet:
 
         """
         (x_train, y_train), (x_test, y_test) = data
+        model = self._models['train']
 
         # Ensure model directory
         if not os.path.isdir(save_dir):
             os.mkdir(save_dir)
 
         # Callback
+        extra_callbacks = extra_callbacks if extra_callbacks else []
         cb = [
             cbs.CSVLogger(f'{save_dir}/log.csv'),
             cbs.LearningRateScheduler(lambda e: lr * (lr_decay ** e)),
@@ -191,14 +194,14 @@ class CapsNet:
             *extra_callbacks
         ]
 
-        self.models['train'].compile(
+        model.compile(
             optimizer=optimizers.Adam(lr=lr),
             loss=[margin_loss, 'mse'],
             loss_weights=[1., decoder_loss_weight],
             metrics={'capsnet': 'accuracy'}
         )
 
-        hist = self.models['train'].fit_generator(
+        hist = model.fit_generator(
             generator=dataset_gen(x_train, y_train, batch_size=batch_size),
             steps_per_epoch=len(x_train) / batch_size,
             epochs=epochs,
@@ -207,9 +210,56 @@ class CapsNet:
             callbacks=cb
         )
 
-        self.models['train'].save_weights(f'{save_dir}/model.h5')
+        self.save_weights(f'{save_dir}/model.h5')
 
         return hist
 
-    def inference(self, data):
-        pass
+    def test(self, data):
+        """Test network on validation data
+
+        Args:
+            data (tuple): Tuple contaning test data with respective labels
+
+        Returns:
+            tuple: Precition vector for labels
+        """
+        x_test, y_test = data
+        model = self._models['test']
+
+        y_pred, _ = model.predict(x_test, batch_size=100)
+        print('-'*30 + 'Begin: test' + '-'*30)
+        correct = np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))
+        total = y_test.shape[0]
+        acc = correct / total
+        print('Test accuracy:', acc)
+        return y_pred
+
+    def evaluate(self, image):
+        """Run model for specific image
+
+        Args:
+            image (np.array): Image data
+
+        Returns:
+            tuple: Prediction vector for labels and recognized feature vector
+        """
+        return  self._models['test'].predict(image)
+
+    def load_weights(self, filename):
+        """Load model from a h5 file
+
+        Args:
+            filename (str): Path to model location
+        """
+        self._models['train'].load_weights(filename)
+
+    def save_weights(self, filename):
+        """Save model's weights
+
+        Args:
+            filename (str): Path and filename where the model should be stored
+        """
+        self._models['train'].save_weights(filename)
+
+    def summary(self):
+        return self._models['train'].summary()
