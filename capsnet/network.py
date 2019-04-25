@@ -17,7 +17,7 @@ class CapsNet:
     and weights in capsules.
     """
 
-    def __init__(self, input_shape, bins, routing_iters=2,
+    def __init__(self, input_shape, bins, routing_iters=3,
                  kernel_initializer='random_uniform'):
         """CapsNet instance constructor.
 
@@ -83,13 +83,14 @@ class CapsNet:
                 resize,
                 arguments=dict(
                     target_shape=(8, 8)
-                )
+                ),
+                name='decoder_resize_1'
             )
         )
         decoder.add(
             layers.Conv2D(
                 4,
-                9,
+                3,
                 activation='relu',
                 padding='same',
                 name='decoder_conv2d_1'
@@ -100,13 +101,14 @@ class CapsNet:
                 resize,
                 arguments=dict(
                     target_shape=(16, 16)
-                )
+                ),
+                name='decoder_resize_2'
             )
         )
         decoder.add(
             layers.Conv2D(
                 8,
-                9,
+                3,
                 activation='relu',
                 padding='same',
                 name='decoder_conv2d_2'
@@ -117,14 +119,15 @@ class CapsNet:
                 resize,
                 arguments=dict(
                     target_shape=(32, 32)
-                )
+                ),
+                name='decoder_resize_3'
             )
         )
         decoder.add(
             layers.Conv2D(
                 16,
-                9,
-                activation=None,
+                3,
+                activation='relu',
                 padding='same',
                 name='decoder_conv2d_3'
             )
@@ -132,7 +135,7 @@ class CapsNet:
         decoder.add(
             layers.Conv2D(
                 3,
-                9,
+                3,
                 activation=None,
                 padding='same',
                 name='decoder_conv2d_4'

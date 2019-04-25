@@ -32,7 +32,7 @@ def main():
         'model/tensorboard_logs', batch_size=10,
         histogram_freq=1, write_graph=True, write_grads=True,
         write_images=True
-    ),
+    )
     capsnet.train(data, batch_size=10, extra_callbacks=[tb])
 
 if __name__ == "__main__":

@@ -70,8 +70,6 @@ class PredictionCapsule(layers.Layer):
             initializer=self.kernel_initializer,
             trainable=True
         )
-        with tf.name_scope(self.name):
-            tf.summary.histogram('W', self.W)
 
         super(PredictionCapsule, self).build(input_shape)
 
@@ -96,34 +94,40 @@ class PredictionCapsule(layers.Layer):
         # Perform: inputs x W by scanning on input[0]
         # Treat first 2 dimensions as batch dimensions
         # [input_capsule_dim] x [capsule_dim, input_capsule_dim]
-        inputs = k.map_fn(lambda x: k.batch_dot(x, self.W, [2, 3]), inputs)
-        # inputs.shape == [None, capsule_dim, input_capsule_dim, capsule_dim]
+        u = k.map_fn(lambda x: k.batch_dot(x, self.W, [2, 3]), inputs)
+        # u.shape == [None, capsule_count, input_capsule_count, capsule_dim]
 
         # Routing
         # Init log prior probabilities to zeros:
-        b = tf.zeros(shape=(k.shape(inputs)[0], self.capsule_count, self.input_capsule_count))
-        # b.shape == [None, capsule_count, input_capsule_count]
+        b = tf.zeros(shape=(k.shape(inputs)[0], self.capsule_count, self.input_capsule_count, 1))
+        # b.shape == [None, capsule_count, input_capsule_count, 1]
 
         for i in range(self.routing_iters):
             with tf.variable_scope(f'routing_{i}'):
                 c = tf.keras.activations.softmax(b, axis=1)
-                # c.shape == [batch_size, capsule_count, input_capsule_count]
-                # Perform: c x input
-                # Treat first 2 dimensions of each tensor as batch dimensions and perform dot:
-                # [input_capsule_count] x [input_capsule_count, capsule_dim]
+                # c.shape == [None, capsule_count, input_capsule_count, 1]
+                # Perform: sum(c x u)
+                #
+                # c.shape == [None, capsule_count, input_capsule_count, 1]
+                # u.shape == [None, capsule_count, input_capsule_count, capsule_dim]
+                s = tf.reduce_sum(tf.multiply(c, u), axis=2, keep_dims=True)
+                # s.shape == [None, capsule_count, 1, capsule_dim]
                 # Perform: squash
-                outputs = squash(k.batch_dot(c, inputs, [2, 2]))
-                # output.shape == [None, capsule_count, capsule_dim]
+                v = squash(s)
+                # v.shape == [None, capsule_count, 1, capsule_dim]
 
-                # Update b only if not the last iteration
-                if i == self.routing_iters-1:
-                    # Perform: output x input
-                    # Treat first 2 dimensions as batch dimensions and dot the rest:
-                    # [capsule_dim] x [input_capsule_count, capsule_dim]
-                    b += k.batch_dot(outputs, inputs, [2, 3])
-                    # b.shape == [None, capsule_count, input_capsule_count]
+                # Perform: output x input
+                # Treat first 2 dimensions as batch dimensions and dot the rest:
+                # [capsule_dim] x [input_capsule_count, capsule_dim]
+                v_tiled = tf.tile(v, (1, 1, self.input_capsule_count, 1))
+                b += tf.reduce_sum(tf.matmul(u, v_tiled, transpose_b=True), axis=3, keep_dims=True)
+                # b.shape == [None, capsule_count, input_capsule_count, 1]
 
-        return outputs
+        # Squeeze the extra dim for manipulation
+        # v.shape == [None, capsule_count, 1, capsule_dim]
+        v = tf.squeeze(v, axis=2)
+        # v.shape == [None, capsule_count, capsule_dim]
+        return v
 
 
 def FeatureCapsule(capsule_dim, channels_count,  # noqa
