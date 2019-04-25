@@ -111,7 +111,7 @@ class PredictionCapsule(layers.Layer):
                 #
                 # c == [None, capsule_count, input_capsule_count, 1]
                 # u == [None, capsule_count, input_capsule_count, capsule_dim]
-                s = tf.reduce_sum(tf.multiply(c, u), axis=2, keep_dims=True)
+                s = tf.reduce_sum(tf.multiply(c, u), axis=2, keepdims=True)
                 # s == [None, capsule_count, 1, capsule_dim]
                 # Perform: squash
                 v = squash(s)
@@ -121,7 +121,7 @@ class PredictionCapsule(layers.Layer):
                 # Treat first 2 dimensions as batch dimensions and dot the rest:
                 # [capsule_dim] x [input_capsule_count, capsule_dim]
                 v_tiled = tf.tile(v, (1, 1, self.input_capsule_count, 1))
-                b += tf.reduce_sum(tf.matmul(u, v_tiled, transpose_b=True), axis=3, keep_dims=True)
+                b += tf.reduce_sum(tf.matmul(u, v_tiled, transpose_b=True), axis=3, keepdims=True)
                 # b == [None, capsule_count, input_capsule_count, 1]
 
         # Squeeze the extra dim for manipulation
@@ -180,8 +180,9 @@ class Mask(layers.Layer):
     def call(self, inputs, **kwargs):
         capsule_output, labels = inputs
 
-        mask = k.batch_flatten(capsule_output * k.expand_dims(labels, -1))
-        return mask
+        labels = k.expand_dims(labels)
+        mask = tf.matmul(capsule_output, labels, transpose_a=True)
+        return k.batch_flatten(mask)
 
     def compute_output_shape(self, input_shape):
         return (None, input_shape[0][1] * input_shape[0][2])

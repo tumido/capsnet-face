@@ -71,7 +71,7 @@ class CapsNet:
             layers.Dense(
                 units=400,
                 activation='relu',
-                input_dim=32*bins,
+                input_dim=32,
                 name='decoder_dense'
             )
         )
@@ -262,4 +262,5 @@ class CapsNet:
         self._models['train'].save_weights(filename)
 
     def summary(self):
-        return self._models['train'].summary()
+        """Output network configuration"""
+        self._models['train'].summary()
