@@ -194,6 +194,7 @@ class CapsNet:
             *extra_callbacks
         ]
 
+        # Compile training model
         model.compile(
             optimizer=optimizers.Adam(lr=lr),
             loss=[margin_loss, 'mse'],
@@ -201,7 +202,15 @@ class CapsNet:
             metrics={'capsnet': 'accuracy'}
         )
 
-        hist = model.fit_generator(
+        # Compile test model with the same settings
+        self._models['test'].compile(
+            optimizer=optimizers.Adam(lr=lr),
+            loss=margin_loss,
+            metrics={'capsnet': 'accuracy'}
+        )
+
+        # Execute training
+        return model.fit_generator(
             generator=dataset_gen(x_train, y_train, batch_size=batch_size),
             steps_per_epoch=len(x_train) / batch_size,
             epochs=epochs,
@@ -209,10 +218,6 @@ class CapsNet:
             verbose=1,
             callbacks=cb
         )
-
-        self.save_weights(f'{save_dir}/model.h5')
-
-        return hist
 
     def test(self, x_test, y_test):
         """Test network on validation data
@@ -223,19 +228,9 @@ class CapsNet:
         Returns:
             tuple: Precition vector for labels
         """
-        model = self._models['test']
+        return self._models['test'].evaluate(x_test, y_test)
 
-        model.compile(
-            optimizer=optimizers.Adam(lr=lr),
-            loss=margin_loss,
-            metrics={'capsnet': 'accuracy'}
-        )
-
-        metrics = model.evaluate(x_test, y_test)
-
-        return metrics
-
-    def predict(self, images):
+    def predict(self, x):
         """Run model predictions
 
         Args:
