@@ -214,7 +214,7 @@ class CapsNet:
 
         return hist
 
-    def test(self, data):
+    def test(self, x_test, y_test):
         """Test network on validation data
 
         Args:
@@ -223,19 +223,20 @@ class CapsNet:
         Returns:
             tuple: Precition vector for labels
         """
-        x_test, y_test = data
         model = self._models['test']
 
-        y_pred, _ = model.predict(x_test, batch_size=100)
-        print('-'*30 + 'Begin: test' + '-'*30)
-        correct = np.sum(np.argmax(y_pred, 1) == np.argmax(y_test, 1))
-        total = y_test.shape[0]
-        acc = correct / total
-        print('Test accuracy:', acc)
-        return y_pred
+        model.compile(
+            optimizer=optimizers.Adam(lr=lr),
+            loss=margin_loss,
+            metrics={'capsnet': 'accuracy'}
+        )
 
-    def evaluate(self, image):
-        """Run model for specific image
+        metrics = model.evaluate(x_test, y_test)
+
+        return metrics
+
+    def predict(self, images):
+        """Run model predictions
 
         Args:
             image (np.array): Image data
@@ -243,7 +244,7 @@ class CapsNet:
         Returns:
             tuple: Prediction vector for labels and recognized feature vector
         """
-        return  self._models['test'].predict(image)
+        return self._models['test'].predict(images)
 
     def load_weights(self, filename):
         """Load model from a h5 file

@@ -43,7 +43,7 @@ def preprocess_lfw_people(people, ttt_ratio=.2):
         y,
         test_size=ttt_ratio,
         # stratify=people.target,
-        # random_state=54
+        random_state=13
     )
 
     # Encode labels to one hot
