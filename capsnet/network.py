@@ -145,7 +145,7 @@ class CapsNet:
             )
         )
         decoder.add(
-            layers.Activation('relu', name='decoder_activation')
+            layers.Activation('sigmoid', name='decoder_activation')
         )
 
         masked = Mask(name='mask')([prediction_caps, y])
