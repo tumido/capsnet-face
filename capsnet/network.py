@@ -158,7 +158,7 @@ class CapsNet:
             ),
             test=models.Model(
                 inputs=x,
-                outputs=[output, feature_caps]
+                outputs=output
             )
         )
 
