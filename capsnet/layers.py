@@ -180,9 +180,7 @@ class Mask(layers.Layer):
     def call(self, inputs, **kwargs):
         capsule_output, labels = inputs
 
-        labels = k.expand_dims(labels)
-        mask = tf.matmul(capsule_output, labels, transpose_a=True)
-        return k.batch_flatten(mask)
+        return k.batch_flatten(capsule_output * k.expand_dims(labels))
 
     def compute_output_shape(self, input_shape):
         return (None, input_shape[0][1] * input_shape[0][2])

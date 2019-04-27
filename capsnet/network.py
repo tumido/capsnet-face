@@ -71,7 +71,7 @@ class CapsNet:
             layers.Dense(
                 units=400,
                 activation='relu',
-                input_dim=32,
+                input_dim=32*bins,
                 name='decoder_dense'
             )
         )

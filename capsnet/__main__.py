@@ -20,12 +20,12 @@ def main():
 
     (x_train, y_train), (x_test, y_test) = data  # noqa
 
-    capsnet = CapsNet(
+    model = CapsNet(
         x_train.shape[1:],
         len(np.unique(y_train, axis=0))
     )
 
-    capsnet.summary()
+    model.summary()
 
     # Start TensorBoard
     tensorboard = callbacks.TensorBoard(
@@ -33,7 +33,7 @@ def main():
         histogram_freq=1, write_graph=True, write_grads=True,
         write_images=True
     )
-    capsnet.train(data, batch_size=10, extra_callbacks=[tensorboard])
+    model.train(data, batch_size=10, extra_callbacks=[tensorboard])
 
 if __name__ == "__main__":
     main()
