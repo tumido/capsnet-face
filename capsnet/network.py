@@ -202,13 +202,6 @@ class CapsNet:
             metrics={'capsnet': 'accuracy'}
         )
 
-        # Compile test model with the same settings
-        self._models['test'].compile(
-            optimizer=optimizers.Adam(lr=lr),
-            loss=margin_loss,
-            metrics={'capsnet': 'accuracy'}
-        )
-
         # Execute training
         return model.fit_generator(
             generator=dataset_gen(x_train, y_train, batch_size=batch_size),
@@ -228,18 +221,28 @@ class CapsNet:
         Returns:
             tuple: Precition vector for labels
         """
-        return self._models['test'].evaluate(x_test, y_test)
+        model = self._models['test']
+        # Compile test model with the same settings
+        model.compile(
+            optimizer='adam',
+            loss=margin_loss,
+            metrics={'capsnet': 'accuracy'}
+        )
+
+        metrics = model.evaluate(x_test, y_test)
+
+        return dict(zip(model.metrics_names, metrics))
 
     def predict(self, x):
         """Run model predictions
 
         Args:
-            image (np.array): Image data
+            x (np.array): Image data
 
         Returns:
             tuple: Prediction vector for labels and recognized feature vector
         """
-        return self._models['test'].predict(images)
+        return self._models['test'].predict(x)
 
     def load_weights(self, filename):
         """Load model from a h5 file
