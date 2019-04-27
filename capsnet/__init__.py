@@ -1,6 +1,7 @@
-"""CapsNet.
+"""Facial recognition via CapsNet.
 
-CapsNet for face recognition.
+Capsule network for face recognition. Uses 3 level shallow capsule encoder
+with dynamic routing by agreement and a convolutional decoder.
 """
 
 

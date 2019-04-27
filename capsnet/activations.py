@@ -24,7 +24,7 @@ def squash(inputs, axis=-1):
 def length(inputs):
     """Compute length from a tensor.
 
-    Used as layer.Lambda function to provide auxilary output of CapsNet.
+    Used as layer.Lambda function to provide auxillary output of CapsNet.
     Instead of a Capsule its length is used.
 
     Args:

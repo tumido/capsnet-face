@@ -6,11 +6,24 @@ from .activations import squash
 
 
 class PredictionCapsule(layers.Layer):
-    """PredictionCapsule layer."""
+    """PredictionCapsule layer.
+
+    A prediction capsule with dynamic routing. A placement above feature
+    capsule layer is expected. Extends <keras.layers.Layer>.
+
+    Args:
+        capsule_count (int): Number of capsules in this layer
+        capsule_dim (int): Dimensionality of each capsule
+        kernel_initializer (str, keras.initializers): Weight initializer
+            generator
+        routing_iters (int, optional): Number of iterations for each routing.
+            Defaults to 3.
+        kwargs (dict): Additional parameters passed to layer. Required to
+            maintain compatibility.
+    """
 
     def __init__(self, capsule_count, capsule_dim,
                  kernel_initializer, routing_iters=3, **kwargs):
-        """Capsule layer."""
         super().__init__(**kwargs)
         self.capsule_count = capsule_count
         self.capsule_dim = capsule_dim
@@ -90,8 +103,6 @@ class PredictionCapsule(layers.Layer):
         # u == [None, capsule_count, input_capsule_count, input_capsule_dim]
 
         # Perform: inputs x W by scanning on input[0]
-        # Treat first 2 dimensions as batch dimensions
-        # [input_capsule_dim] x [capsule_dim, input_capsule_dim]
         u = tf.einsum('iabc,abdc->iabd', u, self.W)
         # u == [None, capsule_count, input_capsule_count, capsule_dim]
 
@@ -117,14 +128,15 @@ class PredictionCapsule(layers.Layer):
                 v = squash(s)
                 # v == [None, capsule_count, 1, capsule_dim]
 
-                # Perform: output x input
-                # Treat first 2 dimensions as batch dimensions and dot the rest:
-                # [capsule_dim] x [input_capsule_count, capsule_dim]
+                # Perform: sumn(output x input)
                 v_tiled = tf.tile(v, (1, 1, self.input_capsule_count, 1))
-                b += tf.reduce_sum(tf.matmul(u, v_tiled, transpose_b=True), axis=3, keepdims=True)
+                b += tf.reduce_sum(
+                    tf.matmul(u, v_tiled, transpose_b=True),
+                    axis=3, keepdims=True
+                )
                 # b == [None, capsule_count, input_capsule_count, 1]
 
-        # Squeeze the extra dim for manipulation
+        # Squeeze the extra dim (used for manipulation, not needed on output)
         # v == [None, capsule_count, 1, capsule_dim]
         v = tf.squeeze(v, axis=2)
         # v == [None, capsule_count, capsule_dim]
@@ -141,6 +153,9 @@ def FeatureCapsule(capsule_dim, channels_count,  # noqa
         kernel_size: Param for Conv2D
         strides: Param for Conv2D
         padding: Param for Conv2D
+
+    Returns:
+        func: Composite keras layer
     """
     def _layer(inputs):
         """Primary capsule layer
@@ -177,10 +192,34 @@ def FeatureCapsule(capsule_dim, channels_count,  # noqa
 
 
 class Mask(layers.Layer):
+    """Masking layer.
+
+    Layer used to combine 2 inputs into a single output. Masks tensor passed
+    as the first input with the second tensor. Second tensor should contain
+    hot one encoding of desired activations.
+    """
     def call(self, inputs, **kwargs):
+        """Layer logic.
+
+        Overrides <keras.layers.Layers.call>
+
+        Args:
+            inputs: Input tensor.
+
+        Returns:
+            A tensor.
+        """
         capsule_output, labels = inputs
 
         return k.batch_flatten(capsule_output * k.expand_dims(labels))
 
     def compute_output_shape(self, input_shape):
+        """Layer output shape.
+
+        Args:
+            input_shape (list): List of input shapes
+
+        Returns:
+            tuple: Output shape for this layer
+        """
         return (None, input_shape[0][1] * input_shape[0][2])

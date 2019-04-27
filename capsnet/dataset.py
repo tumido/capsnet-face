@@ -72,7 +72,7 @@ def dataset_gen(x, y, batch_size):
         width_shift_range=0.1,
         height_shift_range=0.1,
         rotation_range=20,
-        horizontal_flip=True
+        # horizontal_flip=True
     )
 
     generator = datagen.flow(x, y, batch_size=batch_size)
