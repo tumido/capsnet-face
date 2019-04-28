@@ -11,6 +11,7 @@ ipython = "*"
 pydot = "*"
 graphviz = "*"
 jupyter = "*"
+kaggle = "*"
 
 [packages]
 scikit-learn = "==0.20.3"

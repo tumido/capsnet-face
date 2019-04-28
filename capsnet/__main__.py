@@ -2,21 +2,21 @@ import numpy as np
 from sklearn.datasets import fetch_lfw_people
 from keras import callbacks
 
-from capsnet import preprocess_lfw_people, CapsNet
+from capsnet import preprocess, CapsNet, fetch_pins_people
 
 def main():
     """CapsNet run as module.
 
     Run full cycle when CapsNet is run as a module.
     """
-    people = fetch_lfw_people(
+    people = fetch_pins_people(
         color=True,
         min_faces_per_person=25,
         # resize=1.,
         # slice_=(slice(48, 202), slice(48, 202))
     )
 
-    data = preprocess_lfw_people(people)
+    data = preprocess(people)
 
     (x_train, y_train), (x_test, y_test) = data  # noqa
 

@@ -5,7 +5,7 @@ with dynamic routing by agreement and a convolutional decoder.
 """
 
 
-from .dataset import preprocess_lfw_people
+from .dataset import preprocess, fetch_pins_people
 from .network import CapsNet
 
-__all__ = ['CapsNet', 'preprocess_lfw_people']
+__all__ = ['CapsNet', 'preprocess', 'fetch_pins_people']
