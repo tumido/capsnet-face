@@ -52,6 +52,7 @@ class PredictionCapsule(layers.Layer):
             capsule_count=self.capsule_count,
             capsule_dim=self.capsule_dim,
             routing_iters=self.routing_iters,
+            kernel_initializer=self.kernel_initializer,
             **super(PredictionCapsule, self).get_config()
         )
 
@@ -132,7 +133,7 @@ class PredictionCapsule(layers.Layer):
                 v = squash(s)
                 # v == [None, capsule_count, 1, capsule_dim]
 
-                # Perform: sumn(output x input)
+                # Perform: sum(output x input)
                 v_tiled = tf.tile(v, (1, 1, self.input_capsule_count, 1))
                 b += tf.reduce_sum(
                     tf.matmul(u, v_tiled, transpose_b=True),

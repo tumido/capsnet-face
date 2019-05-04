@@ -76,7 +76,7 @@ class CapsNet:
             activation='relu',
             name='encoder_conv2d'
         )(x)
-        dropout = layers.Dropout(.7, name='encoder_dropout')(conv)
+        dropout = layers.Dropout(.3, name='encoder_dropout')(conv)
         feature_caps = FeatureCapsule(
             capsule_dim=feature_caps_dim,
             channels_count=feature_caps_channels,
