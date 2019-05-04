@@ -48,7 +48,8 @@ class CapsNet:
             feature_caps_kernel=5,
             feature_caps_dim=16,
             feature_caps_channels=16,
-            prediction_caps_dim=32
+            prediction_caps_dim=32,
+            image_size=(32, 32)
         ):
         # Input layer
         x = layers.Input(name='input_image', shape=input_shape)
@@ -124,7 +125,7 @@ class CapsNet:
                 ),
                 layers.Lambda(
                     resize,
-                    arguments=dict(target_shape=(32, 32)),
+                    arguments=dict(target_shape=image_size),
                     name='decoder_resize_3'
                 ),
                 layers.Conv2D(

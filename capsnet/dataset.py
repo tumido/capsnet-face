@@ -18,7 +18,7 @@ PINS_DATASET = dict(
 )
 
 
-def preprocess(people, ttt_ratio=.2):
+def preprocess(people, ttt_ratio=.2, resize_to=(32,32)):
     """Preprocess data set.
 
     Convert `sklearn.datasets.fetch_lfw_people` output to usable data set.
@@ -26,6 +26,7 @@ def preprocess(people, ttt_ratio=.2):
     Args:
         people (sklearn.utils.Bunch): LFW data set
         ttt_ratio (float, optional): Train to test ratio. Defaults to .2.
+        resize_to (tuple, optional): Target image size. Defaults to (32, 32).
 
     Returns:
         tuple: ((x_train, y_train), (x_test, y_test))
@@ -35,7 +36,7 @@ def preprocess(people, ttt_ratio=.2):
     y = people.target
 
     def downsample(image):
-        """Downsample image to 32x32.
+        """Downsample image to `resize_to` size.
 
         Args:
             image (np.array): RGB Image as array
@@ -45,7 +46,7 @@ def preprocess(people, ttt_ratio=.2):
         """
 
         image = Image.fromarray(image.astype('uint8'), 'RGB')
-        image = image.resize((32, 32), Image.ANTIALIAS)
+        image = image.resize(resize_to, Image.ANTIALIAS)
         return np.array(image)
 
     x = np.array([downsample(i) for i in x]) / 255
