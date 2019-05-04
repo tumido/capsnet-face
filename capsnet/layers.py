@@ -14,8 +14,9 @@ class PredictionCapsule(layers.Layer):
     Args:
         capsule_count (int): Number of capsules in this layer
         capsule_dim (int): Dimensionality of each capsule
-        kernel_initializer (str, keras.initializers): Weight initializer
-            generator
+        kernel_initializer (str, keras.initializers, optional): Weight
+            initializer generator. Defaults to
+            `keras.initializers.random_normal`.
         routing_iters (int, optional): Number of iterations for each routing.
             Defaults to 3.
         kwargs (dict): Additional parameters passed to layer. Required to
@@ -23,15 +24,18 @@ class PredictionCapsule(layers.Layer):
     """
 
     def __init__(self, capsule_count, capsule_dim,
-                 kernel_initializer, routing_iters=3, **kwargs):
+                 kernel_initializer=None, routing_iters=3, **kwargs):
         super().__init__(**kwargs)
         self.capsule_count = capsule_count
         self.capsule_dim = capsule_dim
         self.routing_iters = routing_iters
 
-        self.kernel_initializer = kernel_initializer
         if isinstance(kernel_initializer, str):
-            self.kernel_initializer = initializers.get(kernel_initializer)
+            kernel_initializer = initializers.get(kernel_initializer)
+        if not kernel_initializer:
+            kernel_initializer = \
+                initializers.random_normal(stddev=0.01, seed=0)
+        self.kernel_initializer = kernel_initializer
 
         # Define feature variables
         self.input_capsule_count = None

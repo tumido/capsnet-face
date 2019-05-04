@@ -1,6 +1,10 @@
 import os
+import tarfile
+from datetime import date
+from io import BytesIO
 
 from keras import models, layers, callbacks as cbs, optimizers, initializers
+from keras.models import model_from_yaml
 
 from .layers import Mask, PredictionCapsule, FeatureCapsule
 from .losses import margin_loss
@@ -36,21 +40,30 @@ class CapsNet:
             capsules in Feature Capsule layer. Defaults to 16.
         prediction_caps_dim (int, optional): Dimension of each capsule in
             Prediction Capsule layer. Defaults to 32.
+        skip_init (boolean, optional): Set to True if network shouldn't be
+            built and it's intended to be loaded from a file later. Defaults
+            to False.
     """
 
     #pylint: disable-msg=too-many-arguments
     def __init__(
             self, input_shape, bins,
             routing_iters=3,
-            kernel_initializer=initializers.random_normal(stddev=0.01, seed=0),
+            kernel_initializer=None,
             init_conv_filters=256,
             init_conv_kernel=9,
             feature_caps_kernel=5,
             feature_caps_dim=16,
             feature_caps_channels=16,
             prediction_caps_dim=32,
-            image_size=(32, 32)
+            image_size=(32, 32),
+            skip_init=False
         ):
+        # Init is skipped, please load the model configurations from a file
+        if skip_init:
+            self._models = {}
+            return
+
         # Input layer
         x = layers.Input(name='input_image', shape=input_shape)
 
@@ -217,7 +230,7 @@ class CapsNet:
         )
 
         # Execute training
-        return model.fit_generator(
+        self.history = model.fit_generator(
             generator=dataset_gen(x_train, y_train, batch_size=batch_size),
             steps_per_epoch=len(x_train) / batch_size,
             epochs=epochs,
@@ -225,6 +238,8 @@ class CapsNet:
             verbose=1,
             callbacks=cb
         )
+
+        return self.history
 
     def test(self, x_test, y_test, batch_size=10):
         """Test network on validation data.
@@ -283,6 +298,86 @@ class CapsNet:
         print(f'Saving model\'s weights to "{filename}"...', end=' ')
         self._models['train'].save_weights(filename)
         print('Done')
+
+    def save(self, filepath):
+        """Save whole model.
+
+        Save both weights and architecture of each model. Creates a tar.gz
+        file at the `filepath` location.
+
+        Args:
+            filepath (str): Path where the archive will be saved.
+        """
+        today = date.today().isoformat()
+        # Use training history to describe model if available
+        try:
+            acc = int(max(self.history.history['val_capsnet_acc']))
+        except AttributeError:
+            acc = 0
+
+        filename = f'{today}_{acc}.tar.gz'
+
+        print(f'Saving model as {filename}...')
+        with tarfile.open(f'{filepath}/{filename}', "w:gz") as tar:
+            # Save model architecture
+            for m in self._models.keys():
+                print(f'\tSaving "{m}" architecture...', end=' ')
+                content = self._models[m].to_yaml().encode()
+                info = tarfile.TarInfo(f'{m}.yml')
+                info.size = len(content)
+
+                tar.addfile(info, BytesIO(content))
+                print('Done')
+            # Save weights
+            print('\tSaving weights...', end=' ')
+            self._models['train'].save_weights(f'{filepath}/tmp_weights')
+            tar.add(f'{filepath}/tmp_weights', 'weights.h5')
+            os.remove(f'{filepath}/tmp_weights')
+            print('Done')
+
+    @classmethod
+    def load(cls, filename):
+        """Load stored model.
+
+        Args:
+            filename (str): `tar.gz` with model architecture and weights location
+
+        Returns:
+            caspnet.Capsnet: Instance of CapsNet
+        """
+        import tensorflow as tf
+        import keras.backend as k
+
+        network = cls(None, None, skip_init=True)
+        custom_objects = {
+            'PredictionCapsule': PredictionCapsule,
+            'FeatureCapsule': FeatureCapsule,
+            'Mask': Mask,
+            'tf': tf,
+            'k': k
+        }
+
+        print(f'Loading model from {filename}...')
+        with tarfile.open(filename, "r:gz") as tar:
+            for m in ('train', 'test'):
+                print(f'\tLoading "{m}" architecture...', end=' ')
+                network._models[m] = model_from_yaml(
+                    tar.extractfile(f'{m}.yml'),
+                    custom_objects=custom_objects
+                )
+                print('Done')
+
+
+            print(f'\tLoading weights...', end=' ')
+            tar.extract('weights.h5')
+            network._models['train'].load_weights('weights.h5')
+            network._models['test'].load_weights('weights.h5', by_name=True)
+            os.remove('weights.h5')
+            print('Done')
+
+        return network
+
+
 
     def summary(self):
         """Output network configuration."""

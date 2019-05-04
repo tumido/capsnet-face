@@ -9,7 +9,7 @@ def main():
 
     Run full cycle when CapsNet is run as a module.
     """
-    people = fetch_pins_people(
+    people = fetch_lfw_people(
         color=True,
         min_faces_per_person=25,
         # resize=1.,
@@ -33,7 +33,8 @@ def main():
         histogram_freq=1, write_graph=True, write_grads=True,
         write_images=True
     )
-    model.train(data, batch_size=10, extra_callbacks=[tensorboard])
+    # model.train(data, batch_size=10, extra_callbacks=[tensorboard])
+    model.save('/tmp')
 
 if __name__ == "__main__":
     main()
