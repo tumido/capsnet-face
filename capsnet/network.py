@@ -52,6 +52,7 @@ class CapsNet:
             kernel_initializer=None,
             init_conv_filters=256,
             init_conv_kernel=9,
+            dropout_rate=.3,
             feature_caps_kernel=5,
             feature_caps_dim=16,
             feature_caps_channels=16,
@@ -76,7 +77,7 @@ class CapsNet:
             activation='relu',
             name='encoder_conv2d'
         )(x)
-        dropout = layers.Dropout(.3, name='encoder_dropout')(conv)
+        dropout = layers.Dropout(dropout_rate, name='encoder_dropout')(conv)
         feature_caps = FeatureCapsule(
             capsule_dim=feature_caps_dim,
             channels_count=feature_caps_channels,
@@ -311,7 +312,7 @@ class CapsNet:
         today = date.today().isoformat()
         # Use training history to describe model if available
         try:
-            acc = int(max(self.history.history['val_capsnet_acc']))
+            acc = int(max(self.history.history['val_capsnet_acc']) * 100)
         except AttributeError:
             acc = 0
 
