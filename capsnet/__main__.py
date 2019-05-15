@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.datasets import fetch_lfw_people
 from keras import callbacks
+from pprint import pprint
 
 from capsnet import preprocess, CapsNet, fetch_pins_people
 
@@ -33,8 +34,12 @@ def main():
         histogram_freq=1, write_graph=True, write_grads=True,
         write_images=True
     )
-    # model.train(data, batch_size=10, extra_callbacks=[tensorboard])
+    model.train(data, batch_size=10, extra_callbacks=[tensorboard])
     model.save('/tmp')
+
+    metrics = model.test(x_test, y_test)
+    pprint(metrics)
+
 
 if __name__ == "__main__":
     main()

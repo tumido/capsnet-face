@@ -64,6 +64,7 @@ class CapsNet:
         if skip_init:
             self._models = {}
             return
+        self.bins = bins
 
         # Input layer
         x = layers.Input(name='input_image', shape=input_shape)
@@ -316,7 +317,7 @@ class CapsNet:
         except AttributeError:
             acc = 0
 
-        filename = f'{today}_{acc}.tar.gz'
+        filename = f'{today}_{self.bins}_{acc}.tar.gz'
 
         print(f'Saving model as {filename}...')
         with tarfile.open(f'{filepath}/{filename}', "w:gz") as tar:
