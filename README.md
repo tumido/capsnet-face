@@ -2,8 +2,9 @@
 
 A CapsNet network implementing a facial recognition for a LFW and similar data sets.
 
+## Generic usage
 
-## Installation
+### Installation
 
 The provided `capsnet` package can be easily installed via PIP:
 
@@ -13,13 +14,7 @@ pip install git+https://github.com/tumido/capsnet-face
 
 The package provides binding to a [Kaggle](https://www.kaggle.com) data set, if you desire use it as your data source please install `kaggle` package as well and setup accordingly.
 
-## Generic usage
-
-This package provides multiple objects:
-
-- `CapsNet`, the network class
-- `preprocess` function for input data preprocessing
-- `fetch_pins_people` a Kaggle [PINS](https://www.kaggle.com/frules11/pins-face-recognition) data set collector with API consistent to the [`fetch_lfw_people`](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_lfw_people.html)
+### CLI
 
 The package provides a CLI interface:
 
@@ -40,7 +35,7 @@ Commands:
 
 To invoke training please do:
 
-```python
+```bash
 $ capsnet train -d lfw
 Using TensorFlow backend.
 Loading data set: LFW
@@ -80,10 +75,12 @@ Starting training...
 Epoch 1/200
 ...
 ```
+
 This launches the standard training routine over LFW dataset. Kaggle PINS dataset is also available
 
 Predictions can be run directly using a saved model:
-```
+
+```bash
 $ capsnet predict -m saved_models/2019-05-14_11-caps_75-acc.tar.gz ~/.../Serena_Williams/Serena_Williams_0020.jpg
 Using TensorFlow backend.
 Loading CapsNet...
@@ -110,15 +107,21 @@ Serena Williams         14.16%
 Tony Blair               8.64%
 ```
 
-## Manual usage
+### Manual
 
 When you desire to experiment with this implementation, please feel free to do so by importing the `CapsNet` class from the installed package. We encourage to explore `help(CapsNet)` to list all methods and arguments possible.
 
-# Model evaluation
+This package provides multiple objects:
+
+- `CapsNet`, the network class
+- `preprocess` function for input data preprocessing
+- `fetch_pins_people` a Kaggle [PINS](https://www.kaggle.com/frules11/pins-face-recognition) data set collector with API consistent to the [`fetch_lfw_people`](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_lfw_people.html)
+
+## Model evaluation
 
 There is a [notebooks](notebooks) folder available in this repository. If you would like to know more about the process how the models were trained or evaluated, please feel free to explore these.
 
-## Collected accuracies over multiple runs
+### Collected accuracies over multiple runs
 
 | Identities | Data set (images) | Routing iterations | Acc. Train | Acc. Validation | Acc. Test  | Loss   |
 | ---------: | ----------------: | -----------------: | ---------: | --------------: | ---------: | -----: |
@@ -127,9 +130,9 @@ There is a [notebooks](notebooks) folder available in this repository. If you wo
 |         11 |        LFW (1560) |                  1 |      52.6% |           63.2% |      61.5% | 0.2952 |
 |         11 |        LFW (1560) |                  3 |      69.3% |           75.0% |      73.7% | 0.2013 |
 
-The trained models are available at [Google Drive](https://drive.google.com/file/d/1--W4YTizYkFQ0H9rOQQapt495512-NIB/view?usp=sharing).
+The trained models are available at [Google Drive](https://drive.google.com/drive/folders/1Ym8p-9WcOMwvHaDBS5LmgdqeDUNxzk3F?usp=sharing).
 
-## Visualized activations
+### Visualized activations
 
 ![George W. Bush](images/predicted_131_fail.svg)
 ![George W. Bush](images/predicted_116_ok.svg)
@@ -137,6 +140,6 @@ The trained models are available at [Google Drive](https://drive.google.com/file
 ![Serena Williams](images/predicted_316_ok.svg)
 ![Junichiro Koizumi](images/predicted_255_ok.svg)
 
-## Confusion matrix for the 11 identities model
+### Confusion matrix for the 11 identities model
 
 ![Confusion matrix](images/confusion.svg)

@@ -7,6 +7,7 @@ setup(
     author='Tomas Coufal',
     packages=['capsnet',],
     license='Apache 2.0',
+    url='https://github.com/tumido/capsnet-face',
     install_requires=['tensorflow', 'scikit-learn', 'keras', 'numpy', 'Pillow', 'click'],
     entry_points='''
         [console_scripts]
