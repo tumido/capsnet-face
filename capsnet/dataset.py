@@ -17,6 +17,21 @@ PINS_DATASET = dict(
     folder='PINS'
 )
 
+def downsample(image, resize_to):
+    """Downsample image to `resize_to` size.
+
+    Args:
+        image (np.array): RGB Image as array.
+        resize_to (tuple, optional): Target image size.
+
+    Returns:
+        np.array: RGB Image as array
+    """
+
+    image = Image.fromarray(image.astype('uint8'), 'RGB')
+    image = image.resize(resize_to, Image.ANTIALIAS)
+    return np.array(image)
+
 
 def preprocess(people, ttt_ratio=.2, resize_to=(32,32)):
     """Preprocess data set.
@@ -32,24 +47,8 @@ def preprocess(people, ttt_ratio=.2, resize_to=(32,32)):
         tuple: ((x_train, y_train), (x_test, y_test))
     """
 
-    x = people.images
+    x = np.array([downsample(i, resize_to) for i in people.images]) / 255
     y = people.target
-
-    def downsample(image):
-        """Downsample image to `resize_to` size.
-
-        Args:
-            image (np.array): RGB Image as array
-
-        Returns:
-            np.array: RGB Image as array
-        """
-
-        image = Image.fromarray(image.astype('uint8'), 'RGB')
-        image = image.resize(resize_to, Image.ANTIALIAS)
-        return np.array(image)
-
-    x = np.array([downsample(i) for i in x]) / 255
 
     # Split to train and test data set
     x_train, x_test, y_train, y_test = train_test_split(

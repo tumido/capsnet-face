@@ -2,6 +2,7 @@ import os
 import tarfile
 from datetime import date
 from io import BytesIO
+import yaml
 
 from keras import models, layers, callbacks as cbs, optimizers, initializers
 from keras.models import model_from_yaml
@@ -301,7 +302,7 @@ class CapsNet:
         self._models['train'].save_weights(filename)
         print('Done')
 
-    def save(self, filepath):
+    def save(self, filepath, names):
         """Save whole model.
 
         Save both weights and architecture of each model. Creates a tar.gz
@@ -309,6 +310,7 @@ class CapsNet:
 
         Args:
             filepath (str): Path where the archive will be saved.
+            names (list): List of names per each label.
         """
         today = date.today().isoformat()
         # Use training history to describe model if available
@@ -335,6 +337,14 @@ class CapsNet:
             self._models['train'].save_weights(f'{filepath}/tmp_weights')
             tar.add(f'{filepath}/tmp_weights', 'weights.h5')
             os.remove(f'{filepath}/tmp_weights')
+            print('Done')
+
+            # Save labels
+            print('\tSaving capsule names...', end=' ')
+            content = yaml.dump(names).encode()
+            info = tarfile.TarInfo('labels.yml')
+            info.size = len(content)
+            tar.addfile(info, BytesIO(content))
             print('Done')
 
     @classmethod
@@ -377,7 +387,12 @@ class CapsNet:
             os.remove('weights.h5')
             print('Done')
 
-        return network
+            print(f'\tExtracting labels...', end=' ')
+            labels = yaml.safe_load(tar.extractfile('labels.yml'))
+            print('Done')
+
+
+        return network, labels
 
 
 
