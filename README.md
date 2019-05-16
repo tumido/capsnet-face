@@ -1,4 +1,6 @@
 # CapsNet classifier for LFW
+[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/)
+[![License](https://img.shields.io/badge/license-APACHE2-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
 A CapsNet network implementing a facial recognition for a LFW and similar data sets.
 
@@ -13,6 +15,55 @@ pip install git+https://github.com/tumido/capsnet-face
 ```
 
 The package provides binding to a [Kaggle](https://www.kaggle.com) data set, if you desire use it as your data source please install `kaggle` package as well and setup accordingly.
+
+### Local setup
+
+If you want to create a developer setup for this package, you can either use Conda or Pipenv to do so:
+
+```bash
+$ git clone https://github.com/tumido/capsnet-face
+Cloning into 'capsnet-face'...
+remote: Enumerating objects: 95, done.
+remote: Counting objects: 100% (95/95), done.
+remote: Compressing objects: 100% (67/67), done.
+remote: Total 330 (delta 52), reused 69 (delta 28), pack-reused 235
+Receiving objects: 100% (330/330), 2.02 MiB | 4.12 MiB/s, done.
+Resolving deltas: 100% (200/200), done.
+$ cd capsnet-face
+```
+
+Then sync via Pipenv:
+```bash
+$ pipenv sync --dev
+Creating a virtualenv for this project…
+...
+⠏ Creating virtual environment...
+...
+Installing dependencies from Pipfile.lock (2dc3d7)…
+  🐍   ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉ 96/96 — 00:01:15
+To activate this project's virtualenv, run pipenv shell.
+Alternatively, run a command inside the virtualenv with pipenv run.
+All dependencies are now up-to-date!
+
+$ pipenv shell
+Launching subshell in virtual environment…
+...
+```
+
+Or use Anaconda/Conda:
+
+```bash
+$ conda env create -f environment.yml
+Collecting package metadata: done
+Solving environment: done
+Preparing transaction: done
+...
+
+$ conda activate keras_cpu
+...
+```
+
+Python 3.6 supported.
 
 ### CLI
 
