@@ -4,6 +4,7 @@ import click
 import numpy as np
 import yaml
 
+import tensorflow as tf
 from .network import CapsNet
 from .dataset import fetch_pins_people, preprocess, downsample
 from sklearn.datasets import fetch_lfw_people
@@ -84,6 +85,7 @@ def predict(model, image):
     # Suppress Keras deprecation warnings
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     yaml.warnings({'YAMLLoadWarning': False})
+    tf.logging.set_verbosity(tf.logging.ERROR)
 
     # Load network and labels
     click.echo(click.style('Loading CapsNet...', fg='green'))

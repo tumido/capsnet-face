@@ -3,7 +3,7 @@ from distutils.core import setup  # noqa
 setup(
     name='capsnet',
     description='CapsNet - face recognition',
-    version='1.0.0',
+    version='1.0.1',
     author='Tomas Coufal',
     packages=['capsnet',],
     license='Apache 2.0',
