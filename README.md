@@ -132,8 +132,8 @@ This launches the standard training routine over LFW dataset. Kaggle PINS datase
 Predictions can be run directly using a saved model:
 
 ```bash
-$ capsnet predict -m saved_models/2019-05-14_11-caps_75-acc.tar.gz ~/.../Serena_Williams/Serena_Williams_0020.jpg
-Using TensorFlow backend.
+
+$ predict -m saved_models/2019-05-14_11-caps_75-acc.tar.gz Serena_Williams_0002.jpg
 Loading CapsNet...
 Loading model from saved_models/2019-05-14_11-caps_75-acc.tar.gz...
         Loading "train" architecture... Done
@@ -144,18 +144,18 @@ Loading image...
 Predicting...
 Guessed likelihood per label:
 Label               Probability
-Ariel Sharon             8.60%
-Colin Powell            70.23% <-- Best match
-Donald Rumsfeld          2.22%
-George W Bush           11.51%
-Gerhard Schroeder        7.77%
-Hugo Chavez             13.94%
-Jacques Chirac           6.58%
-Jean Chretien            2.05%
-John Ashcroft            5.09%
-Junichiro Koizumi        9.37%
-Serena Williams         14.16%
-Tony Blair               8.64%
+Ariel Sharon             2.83%
+Colin Powell             8.25%
+Donald Rumsfeld          3.25%
+George W Bush            0.79%
+Gerhard Schroeder        0.25%
+Hugo Chavez              0.08%
+Jacques Chirac           0.08%
+Jean Chretien            0.11%
+John Ashcroft            0.65%
+Junichiro Koizumi        0.16%
+Serena Williams         91.07% <-- Best match
+Tony Blair               0.23%
 ```
 
 ### Manual
